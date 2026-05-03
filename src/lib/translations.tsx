@@ -106,6 +106,9 @@ interface TranslationSchema {
   author: string;
   publishedOn: string;
   noArticles: string;
+  share: string;
+  shareArticle: string;
+  linkCopied: string;
   footerContact: string;
   scanToContact: string;
   footerTagline: string;
@@ -253,6 +256,9 @@ export const translations: Record<Language, TranslationSchema> = {
     author: "लेखक",
     publishedOn: "प्रकाशित मिति",
     noArticles: "अहिले कुनै लेखहरू उपलब्ध छैनन्।",
+    share: "सेयर (Share)",
+    shareArticle: "लेख सेयर गर्नुहोस्",
+    linkCopied: "लिङ्क कपी गरियो!",
     footerContact: "आजै सम्पर्क वा मेसेज गर्नुहोस्!",
     scanToContact: "SCAN TO CONTACT",
     footerTagline: "सम्पूर्ण कर्मकाण्ड एवं परामर्शको लागि हामीलाई मेसेज गर्नुहोस्। 🙏",
@@ -483,6 +489,9 @@ export const translations: Record<Language, TranslationSchema> = {
     author: "Author",
     publishedOn: "Published On",
     noArticles: "No articles available at the moment.",
+    share: "Share",
+    shareArticle: "Share Article",
+    linkCopied: "Link copied to clipboard!",
     footerContact: "Contact or message us today!",
     scanToContact: "SCAN TO CONTACT",
     footerTagline: "Please message us for all rituals and consultations. 🙏",

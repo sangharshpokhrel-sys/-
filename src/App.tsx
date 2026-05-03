@@ -2495,9 +2495,37 @@ const blogArticles: BlogArticle[] = [
   }
 ];
 
-const ArticleModal = ({ article, onClose }: { article: BlogArticle; onClose: () => void }) => {
+const ArticleModal = ({ article, onClose, onNotify }: { article: BlogArticle; onClose: () => void; onNotify?: (msg: string, type: 'success' | 'error' | 'info') => void }) => {
   const { language, t } = useTranslation() as any;
+  const [showShareOptions, setShowShareOptions] = React.useState(false);
+
   if (!article) return null;
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: article.title[language as Language],
+          text: article.excerpt[language as Language],
+          url: window.location.href,
+        });
+        return;
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') console.error(err);
+      }
+    }
+    setShowShareOptions(!showShareOptions);
+  };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      if (onNotify) onNotify(t.linkCopied, "success");
+      setShowShareOptions(false);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   return (
     <motion.div
@@ -2525,6 +2553,47 @@ const ArticleModal = ({ article, onClose }: { article: BlogArticle; onClose: () 
         >
           <X size={24} />
         </button>
+
+        <div className="absolute top-6 right-20 z-20 flex items-center gap-2">
+          <button 
+            onClick={handleShare}
+            className="bg-black/40 hover:bg-gold/40 text-white p-2 rounded-full transition-all border border-white/10 flex items-center gap-2"
+          >
+            <Share2 size={24} />
+          </button>
+          
+          <AnimatePresence>
+            {showShareOptions && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                className="bg-[#1a0f00] border border-gold/30 rounded-2xl p-2 shadow-2xl flex items-center gap-2"
+              >
+                <a 
+                  href={`https://wa.me/?text=${encodeURIComponent(article.title[language as Language])}%20${encodeURIComponent(window.location.href)}`}
+                  target="_blank" rel="noopener noreferrer"
+                  className="p-2 hover:bg-white/5 rounded-xl transition-colors"
+                >
+                  <MessageCircle size={18} className="text-green-500" />
+                </a>
+                <a 
+                  href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
+                  target="_blank" rel="noopener noreferrer"
+                  className="p-2 hover:bg-white/5 rounded-xl transition-colors"
+                >
+                  <Facebook size={18} className="text-blue-600" />
+                </a>
+                <button 
+                  onClick={copyLink}
+                  className="p-2 hover:bg-white/5 rounded-xl transition-colors"
+                >
+                  <Link size={18} className="text-gold" />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="h-64 md:h-96 w-full relative">
@@ -2608,11 +2677,11 @@ const BlogSection = ({ articles, onSelect, onNotify }: { articles: BlogArticle[]
     setSharingArticleId(sharingArticleId === article.id ? null : article.id);
   };
 
-  const copyLink = async (e: React.MouseEvent, url: string) => {
-    e.stopPropagation();
+  const copyLink = async (e: React.MouseEvent | React.FocusEvent, url: string) => {
+    if ('stopPropagation' in e) e.stopPropagation();
     try {
       await navigator.clipboard.writeText(url);
-      if (onNotify) onNotify(language === 'ne' ? "लिङ्क प्रतिलिपि गरियो!" : "Link copied to clipboard!", "success");
+      if (onNotify) onNotify(t.linkCopied, "success");
       setSharingArticleId(null);
     } catch (err) {
       console.error("Copy failed", err);
@@ -2706,7 +2775,7 @@ const BlogSection = ({ articles, onSelect, onNotify }: { articles: BlogArticle[]
                           onClick={(e) => copyLink(e, window.location.href)}
                           className="flex items-center gap-3 px-3 py-2 hover:bg-white/5 rounded-xl transition-colors text-xs text-white/80 w-full text-left"
                         >
-                          <Link size={14} className="text-gold" /> {language === 'ne' ? 'लिङ्क कोपी' : 'Copy Link'}
+                          <Link size={14} className="text-gold" /> {t.shareArticle}
                         </button>
                       </motion.div>
                     )}
@@ -2989,6 +3058,7 @@ export default function App() {
           <ArticleModal 
             article={selectedArticle} 
             onClose={() => setSelectedArticle(null)} 
+            onNotify={handleNotify}
           />
         )}
       </AnimatePresence>
