@@ -1,5 +1,73 @@
 @import url('https://fonts.googleapis.com/css2?family=Mukta:wght@200;300;400;500;600;700;800&family=Yantra+One:wght@400;700&family=Cinzel:wght@400;700;900&display=swap');
 @import "tailwindcss";
+@import "react-big-calendar/lib/css/react-big-calendar.css";
+
+/* Spiritual Calendar Overrides */
+.spiritual-calendar {
+  @apply text-white/80 font-sans;
+}
+
+.spiritual-calendar .rbc-month-view,
+.spiritual-calendar .rbc-time-view,
+.spiritual-calendar .rbc-agenda-view {
+  @apply border-white/10 rounded-xl overflow-hidden bg-black/20 backdrop-blur-sm;
+}
+
+.spiritual-calendar .rbc-off-range-bg {
+  @apply bg-white/5;
+}
+
+.spiritual-calendar .rbc-today {
+  @apply bg-gold/10;
+}
+
+.spiritual-calendar .rbc-header {
+  @apply border-white/10 py-2 text-gold text-[10px] uppercase font-black tracking-widest;
+}
+
+.spiritual-calendar .rbc-month-row {
+  @apply border-white/10;
+}
+
+.spiritual-calendar .rbc-day-bg {
+  @apply border-white/10;
+}
+
+.spiritual-calendar .rbc-event {
+  @apply bg-gold text-deep-brown font-bold text-[10px] rounded-md border-none px-2 shadow-lg shadow-gold/20;
+}
+
+.spiritual-calendar .rbc-toolbar button {
+  @apply text-white/60 border-white/10 hover:bg-gold hover:text-deep-brown hover:border-gold transition-all rounded-md px-3 font-bold text-xs;
+}
+
+.spiritual-calendar .rbc-toolbar button.rbc-active {
+  @apply bg-gold text-deep-brown border-gold shadow-md;
+}
+
+.spiritual-calendar .rbc-toolbar-label {
+  @apply text-gold font-bold text-sm tracking-tight capitalize;
+}
+
+.spiritual-calendar .rbc-show-more {
+  @apply text-gold font-bold text-[10px] bg-transparent;
+}
+
+.spiritual-calendar .rbc-time-content {
+  @apply border-white/10;
+}
+
+.spiritual-calendar .rbc-timeslot-group {
+  @apply border-white/10;
+}
+
+.spiritual-calendar .rbc-time-slot {
+  @apply border-white/10;
+}
+
+.spiritual-calendar .rbc-current-time-indicator {
+  @apply bg-saffron;
+}
 
 @theme {
   --font-sans: "Mukta", ui-sans-serif, system-ui, sans-serif;
