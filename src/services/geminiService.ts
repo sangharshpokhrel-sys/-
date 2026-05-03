@@ -50,3 +50,35 @@ export const generateBlogArticle = async (
     throw new Error("Failed to generate blog article. Please try again.");
   }
 };
+
+export interface ChatMessage {
+  role: "user" | "model";
+  parts: { text: string }[];
+}
+
+export const spiritualChat = async (history: ChatMessage[], message: string, language: string) => {
+  const systemInstruction = `You are a wise and compassionate spiritual Guru and Vedic scholar. 
+  Your goal is to provide guidance, explain rituals, and offer spiritual insights based on Vedic traditions, Sanatan Dharma, and general spirituality. 
+  Always be respectful, humble, and uplifting. 
+  Current user language: ${language}. Please respond primarily in ${language}, but you can use Sanskrit verses (Shlokas) with meanings when appropriate.
+  If asked about non-spiritual topics, gently guide the conversation back to spiritual or cultural aspects while still being helpful.`;
+
+  try {
+    const chat = ai.chats.create({
+      model: "gemini-3-flash-preview",
+      config: {
+        systemInstruction,
+      },
+      history: history,
+    });
+
+    const response = await chat.sendMessage({
+      message: message,
+    });
+
+    return response.text;
+  } catch (error) {
+    console.error("Gemini Chat Error:", error);
+    throw new Error("I am currently in deep meditation (offline). Please try again later.");
+  }
+};

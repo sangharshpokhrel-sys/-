@@ -112,6 +112,9 @@ interface TranslationSchema {
   footerContact: string;
   scanToContact: string;
   footerTagline: string;
+  chatAssistant: string;
+  chatPlaceholder: string;
+  chatGreeting: string;
   liveUpdate: string;
   help: string;
   statusReceived: string;
@@ -262,6 +265,9 @@ export const translations: Record<Language, TranslationSchema> = {
     footerContact: "आजै सम्पर्क वा मेसेज गर्नुहोस्!",
     scanToContact: "SCAN TO CONTACT",
     footerTagline: "सम्पूर्ण कर्मकाण्ड एवं परामर्शको लागि हामीलाई मेसेज गर्नुहोस्। 🙏",
+    chatAssistant: "आध्यात्मिक गुरु (AI Assistant)",
+    chatPlaceholder: "आफ्नो जिज्ञासा यहाँ सोध्नुहोस्...",
+    chatGreeting: "नमस्ते! म तपाईँको आध्यात्मिक सहायक हुँ। तपाईँलाई आज कुन कुरामा मद्दत चाहिन्छ?",
     liveUpdate: "लाइभ अपडेट (Live Update)",
     help: "मद्दत (Help)",
     statusReceived: "प्राप्त भयो (Received)",
@@ -495,6 +501,9 @@ export const translations: Record<Language, TranslationSchema> = {
     footerContact: "Contact or message us today!",
     scanToContact: "SCAN TO CONTACT",
     footerTagline: "Please message us for all rituals and consultations. 🙏",
+    chatAssistant: "Spiritual Guru (AI Assistant)",
+    chatPlaceholder: "Ask your spiritual query here...",
+    chatGreeting: "Namaste! I am your spiritual assistant. How can I help you today?",
     liveUpdate: "Live Update",
     help: "Help / FAQ",
     statusReceived: "Received",

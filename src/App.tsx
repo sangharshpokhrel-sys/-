@@ -9,7 +9,7 @@ import {
   Phone, MessageSquare, MapPin, Sparkles, Flower2, Search, Calendar as CalendarIcon, Home, BookOpen, Star, QrCode, 
   Moon, Sun, Orbit, Compass, Users, Activity, Share2, Check, Send, ChevronDown, HelpCircle, Mail, 
   Award, GraduationCap, Clock, CheckCircle, Bell, X, Info, Sunrise, Flame, ScrollText, Milestone, 
-  Languages, ChevronLeft, ChevronRight, ArrowRight, Facebook, Twitter, Link, MessageCircle, User, AtSign
+  Languages, ChevronLeft, ChevronRight, ArrowRight, Facebook, Twitter, Link, MessageCircle, User, AtSign, Bot
 } from "lucide-react";
 import { 
   format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, 
@@ -19,7 +19,7 @@ import { enUS } from "date-fns/locale/en-US";
 import { Calendar as BigCalendar, dateFnsLocalizer } from 'react-big-calendar';
 import { QRCodeSVG } from "qrcode.react";
 import { useTranslation, type Language } from "./lib/translations";
-import { generateBlogArticle } from "./services/geminiService";
+import { generateBlogArticle, spiritualChat, type ChatMessage } from "./services/geminiService";
 
 const locales = {
   'en-US': enUS,
@@ -73,6 +73,178 @@ const SupportButton = () => {
     </motion.a>
   );
 };
+
+const ChatAssistant = () => {
+  const { t, language } = useTranslation() as any;
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [messages, setMessages] = React.useState<{role: 'user' | 'model', content: string}[]>([]);
+  const [input, setInput] = React.useState("");
+  const [isTyping, setIsTyping] = React.useState(false);
+  const [history, setHistory] = React.useState<ChatMessage[]>([]);
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const { playClick, playSuccess, playError } = useSoundEffects();
+
+  React.useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages, isTyping]);
+
+  const handleSend = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!input.trim() || isTyping) return;
+
+    const userMsg = input.trim();
+    setInput("");
+    setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
+    setIsTyping(true);
+    playClick();
+
+    try {
+      const response = await spiritualChat(history, userMsg, language);
+      setMessages(prev => [...prev, { role: 'model', content: response || "" }]);
+      setHistory(prev => [
+        ...prev, 
+        { role: 'user', parts: [{ text: userMsg }] },
+        { role: 'model', parts: [{ text: response || "" }] }
+      ]);
+      playSuccess();
+    } catch (err) {
+      setMessages(prev => [...prev, { role: 'model', content: (err as Error).message }]);
+      playError();
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  return (
+    <>
+      <motion.button
+        whileHover={{ scale: 1.1, rotate: 5 }}
+        whileTap={{ scale: 0.9 }}
+        onClick={() => setIsOpen(!isOpen)}
+        className="fixed bottom-28 right-8 z-50 bg-gradient-to-br from-saffron to-gold text-deep-brown p-4 rounded-full shadow-[0_10px_30px_rgba(244,196,48,0.4)] flex items-center justify-center border-2 border-[#fff7e6]/20"
+      >
+        {isOpen ? <X size={24} /> : <Bot size={24} />}
+        <motion.div
+          animate={{ scale: [1, 1.2, 1] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-[#1a0f00]"
+        />
+      </motion.button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.9, transformOrigin: 'bottom right' }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-48 right-8 z-50 w-[90vw] max-w-[400px] h-[60vh] max-h-[600px] bg-[#1a0f00]/95 backdrop-blur-2xl border border-gold/30 rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.8)] flex flex-col overflow-hidden"
+          >
+            {/* Header */}
+            <div className="p-6 bg-gradient-to-r from-deep-brown to-black border-b border-gold/20 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gold/10 rounded-xl text-gold">
+                  <Sparkles size={20} />
+                </div>
+                <div>
+                  <h3 className="text-gold font-bold text-sm tracking-tight">{t.chatAssistant}</h3>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                    <span className="text-[10px] text-white/40 uppercase font-black tracking-widest">Online</span>
+                  </div>
+                </div>
+              </div>
+              <button 
+                onClick={() => setIsOpen(false)}
+                className="text-white/20 hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Messages */}
+            <div 
+              ref={scrollRef}
+              className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar"
+            >
+              {messages.length === 0 && (
+                <div className="text-center py-8 space-y-4">
+                  <div className="w-16 h-16 bg-gold/5 rounded-full flex items-center justify-center mx-auto text-gold/20">
+                    <LotusIcon size={40} />
+                  </div>
+                  <p className="text-gold/60 text-sm italic italic leading-relaxed px-4">
+                    {t.chatGreeting}
+                  </p>
+                </div>
+              )}
+              
+              {messages.map((msg, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, x: msg.role === 'user' ? 20 : -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div className={`max-w-[85%] p-4 rounded-2xl text-sm leading-relaxed ${
+                    msg.role === 'user' 
+                      ? 'bg-gold/20 text-white border border-gold/20 mr-2 rounded-tr-none' 
+                      : 'bg-white/5 text-white/80 border border-white/10 ml-2 rounded-tl-none'
+                  }`}>
+                    {msg.content}
+                  </div>
+                </motion.div>
+              ))}
+              
+              {isTyping && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex justify-start ml-2"
+                >
+                  <div className="bg-white/5 p-4 rounded-2xl border border-white/10 rounded-tl-none flex gap-1">
+                    <motion.div animate={{ opacity: [0.2, 1, 0.2] }} transition={{ repeat: Infinity, duration: 1 }} className="w-1.5 h-1.5 bg-gold rounded-full" />
+                    <motion.div animate={{ opacity: [0.2, 1, 0.2] }} transition={{ repeat: Infinity, duration: 1, delay: 0.2 }} className="w-1.5 h-1.5 bg-gold rounded-full" />
+                    <motion.div animate={{ opacity: [0.2, 1, 0.2] }} transition={{ repeat: Infinity, duration: 1, delay: 0.4 }} className="w-1.5 h-1.5 bg-gold rounded-full" />
+                  </div>
+                </motion.div>
+              )}
+            </div>
+
+            {/* Input */}
+            <form onSubmit={handleSend} className="p-6 bg-black/40 border-t border-white/10 flex gap-2">
+              <input 
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={t.chatPlaceholder}
+                className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-white text-sm focus:border-gold/50 outline-none transition-all placeholder:text-white/20"
+              />
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                disabled={!input.trim() || isTyping}
+                className={`p-3 rounded-2xl flex items-center justify-center transition-all ${
+                  !input.trim() || isTyping ? 'bg-white/5 text-white/10' : 'bg-gold text-deep-brown shadow-lg'
+                }`}
+              >
+                <Send size={20} />
+              </motion.button>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+};
+
+const LotusIcon = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" />
+    <path d="M12 17c2.761 0 5-2.239 5-5s-2.239-5-5-5-5 2.239-5 5 2.239 5 5 5z" />
+    <path d="M12 15c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3z" />
+    <path d="M12 13c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1z" />
+  </svg>
+);
 
 const AIBlogGenerator = ({ onArticleGenerated }: { onArticleGenerated: (article: BlogArticle) => void }) => {
   const { t, language } = useTranslation() as any;
@@ -3036,6 +3208,7 @@ export default function App() {
     <div className="min-h-screen bg-deep-brown flex flex-col items-center justify-center p-4 md:p-12 overflow-hidden font-sans relative">
       <LanguageSwitcher />
       <SupportButton />
+      <ChatAssistant />
       <AnimatePresence>
         {notification && (
           <NotificationToast 
